@@ -56,8 +56,7 @@ DEADJOE
 # end section managed by etckeeper
 
 
-!/apt/mirror.list
-!/apt/postmirror.sh
+!/apt
 !/libvirt
 !/compizconfig
 !/bash_completion
