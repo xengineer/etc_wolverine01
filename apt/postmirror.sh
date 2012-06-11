@@ -13,7 +13,7 @@
 
 ECHO="/bin/echo"
 DATE=`/bin/date '+%Y%m%d'`
-MV="/bin/mv"
+COPY="/bin/cp -prf"
 LN="/bin/ln -s"
 RSYNC="/usr/bin/rsync"
 
@@ -22,13 +22,16 @@ RSYNC="/usr/bin/rsync"
 # define constants
 #
 
-REPODIR="./mnt/external/repository"
-REPOTMP="./mnt/external/repository_tmp"
+REPODIR="/mnt/external/repository"
+REPOTMP="/mnt/external/repository_tmp"
 REPODATE=`${ECHO} ${REPODIR}${DATE}`
 CODENAME="precise"
 
-RSYNCSOURCE="rsync://jp.archive.ubuntu.com/ubuntu"
-BASEDIR="${REPODIR}/mirror/archive.ubuntu.com/ubuntu/"
+SYNCURL="ftp.riken.go.jp"
+RSYNCSOURCE="rsync://${SYNCURL}/ubuntu/"
+BASEDIR="${REPOTMP}/mirror/${SYNCURL}/Linux/ubuntu/dists/${CODENAME}/"
+BASEDIR_UPDATES="${REPOTMP}/mirror/${SYNCURL}/Linux/ubuntu/dists/${CODENAME}-updates/"
+BASEDIR_SECURITY="${REPOTMP}/mirror/${SYNCURL}/Linux/ubuntu/dists/${CODENAME}-security/"
 
 #################
 #
@@ -37,29 +40,30 @@ BASEDIR="${REPODIR}/mirror/archive.ubuntu.com/ubuntu/"
 
 ${RSYNC} --recursive --times --links --hard-links \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
-      ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}/dists/${CODENAME}/
+      ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}
 
 ${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
-      ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}/dists/${CODENAME}/
+      ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}
 
 ${RSYNC} --recursive --times --links --hard-links \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
-      ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR}/dists/${CODENAME}-updates/
+      ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR_UPDATES}
 
 ${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
-      ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR}/dists/${CODENAME}-updates/
+      ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR_UPDATES}
 
 ${RSYNC} --recursive --times --links --hard-links \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
-      ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR}/dists/${CODENAME}-security/
+      ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR_SECURITY}
 
 ${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
-      ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR}/dists/${CODENAME}-security/
+      ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR_SECURITY}
 
 # move directory
-${MV} -p ${REPOTMP} ${REPODATE}
+${COPY} ${REPOTMP} ${REPODATE}
 
 # make an symbolic link
 # its easier to take a backup this way
 ${LN} ${REPODATE} ${REPODIR}
 
+echo "aaaaaaaa" >> /tmp/aaaaa
