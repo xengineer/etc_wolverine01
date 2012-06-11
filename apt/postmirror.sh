@@ -66,4 +66,3 @@ ${COPY} ${REPOTMP} ${REPODATE}
 # its easier to take a backup this way
 ${LN} ${REPODATE} ${REPODIR}
 
-echo "aaaaaaaa" >> /tmp/aaaaa
