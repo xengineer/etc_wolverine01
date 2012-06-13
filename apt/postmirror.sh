@@ -45,27 +45,27 @@ ${ECHO} "# Starting post process shell script #"
 ${ECHO} "######################################"
 date '+%Y-%m-%d-%H:%M:%S'
 ${ECHO} "running rsync... ${RSYNCSOURCE}/dists/${CODENAME}"
-${RSYNC} --recursive --times --links --hard-links \
+${RSYNC} --recursive --times --links --hard-links --progress \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}
 
-${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
+${RSYNC} --recursive --times --links --hard-links --progress --delete --delete-after --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}
 
 ${ECHO} "running rsync... ${RSYNCSOURCE}/dists/${CODENAME}-updates"
-${RSYNC} --recursive --times --links --hard-links \
+${RSYNC} --recursive --times --links --hard-links --progress \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR_UPDATES}
 
-${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
+${RSYNC} --recursive --times --links --hard-links --progress --delete --delete-after --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR_UPDATES}
 
 ${ECHO} "running rsync... ${RSYNCSOURCE}/dists/${CODENAME}-security"
-${RSYNC} --recursive --times --links --hard-links \
+${RSYNC} --recursive --times --links --hard-links --progress \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR_SECURITY}
 
-${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
+${RSYNC} --recursive --times --links --hard-links --progress --delete --delete-after --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR_SECURITY}
 
 ${ECHO}
@@ -73,13 +73,12 @@ ${ECHO}
 if [ -d ${REPODATE} ];then
   ${ECHO} "Overwriting repository ${REPODATE}"
   ${ECHO} ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
-  ${COPY} ${REPOTMP}/* ${REPODATE}
-  ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
+  ${RSYNC} -avr ${REPOTMP}/* ${REPODATE} | pv > /dev/null 
 else
   ${ECHO} "${MKDIR} ${REPODATE}"
   ${MKDIR} ${REPODATE}
   ${ECHO} ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
-  ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
+  ${RSYNC} -avr ${REPOTMP}/* ${REPODATE} | pv > /dev/null
 fi
 
 # make an symbolic link
@@ -90,7 +89,10 @@ if [ ! -h ${REPODIR} ];then
   ${LN} ${REPODATE} ${REPODIR}
 fi
 
-${ECHO} "Current repository is ${REPODATE}"
-
 # execute generation control script
 ${AMGENCTRL} -y >> /tmp/genctrl.log
+
+if [ $? -ne 0 ];then
+  ${ECHO} "${AMGENCTRL} did not run correctly. Check /tmp/genctrl.log"
+fi
+${ECHO} "Current repository is ${REPODATE}"
