@@ -16,6 +16,8 @@ DATE=`/bin/date '+%Y%m%d'`
 COPY="/bin/cp -prf"
 LN="/bin/ln -s"
 RSYNC="/usr/bin/rsync"
+AMGENCTRL="/usr/local/sbin/amgenctrl.rb"
+MKDIR="/bin/mkdir"
 
 #################
 #
@@ -38,6 +40,11 @@ BASEDIR_SECURITY="${REPOTMP}/mirror/${SYNCURL}/Linux/ubuntu/dists/${CODENAME}-se
 # main(rsync)
 #
 
+${ECHO} "######################################"
+${ECHO} "# Starting post process shell script #"
+${ECHO} "######################################"
+date '+%Y-%m-%d-%H:%M:%S'
+${ECHO} "running rsync... ${RSYNCSOURCE}/dists/${CODENAME}"
 ${RSYNC} --recursive --times --links --hard-links \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}
@@ -45,6 +52,7 @@ ${RSYNC} --recursive --times --links --hard-links \
 ${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}/ ${BASEDIR}
 
+${ECHO} "running rsync... ${RSYNCSOURCE}/dists/${CODENAME}-updates"
 ${RSYNC} --recursive --times --links --hard-links \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR_UPDATES}
@@ -52,6 +60,7 @@ ${RSYNC} --recursive --times --links --hard-links \
 ${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-updates/ ${BASEDIR_UPDATES}
 
+${ECHO} "running rsync... ${RSYNCSOURCE}/dists/${CODENAME}-security"
 ${RSYNC} --recursive --times --links --hard-links \
       --exclude "Packages*" --exclude "Sources*" --exclude "Release*" --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR_SECURITY}
@@ -59,10 +68,29 @@ ${RSYNC} --recursive --times --links --hard-links \
 ${RSYNC} --recursive --times --links --hard-links --delete --delete-after --no-motd \
       ${RSYNCSOURCE}/dists/${CODENAME}-security/ ${BASEDIR_SECURITY}
 
+${ECHO}
 # move directory
-${COPY} ${REPOTMP} ${REPODATE}
+if [ -d ${REPODATE} ];then
+  ${ECHO} "Overwriting repository ${REPODATE}"
+  ${ECHO} ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
+  ${COPY} ${REPOTMP}/* ${REPODATE}
+  ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
+else
+  ${ECHO} "${MKDIR} ${REPODATE}"
+  ${MKDIR} ${REPODATE}
+  ${ECHO} ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
+  ${RSYNC} -avr ${REPOTMP}/* ${REPODATE}
+fi
 
 # make an symbolic link
 # its easier to take a backup this way
-${LN} ${REPODATE} ${REPODIR}
+${ECHO}
+if [ ! -h ${REPODIR} ];then
+  ${ECHO} ${LN} ${REPODATE} ${REPODIR}
+  ${LN} ${REPODATE} ${REPODIR}
+fi
 
+${ECHO} "Current repository is ${REPODATE}"
+
+# execute generation control script
+${AMGENCTRL} -y >> /tmp/genctrl.log
