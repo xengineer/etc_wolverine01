@@ -1,0 +1,78 @@
+
+:syntax enable
+
+"" Vundle config
+set nocompatible
+filetype off
+
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+Bundle 'gmarik/vundle'
+
+Bundle 'Shougo/unite.vim'
+Bundle 'thinca/vim-ref'
+Bundle 'thinca/vim-quickrun'
+Bundle 'Shougo/git-vim'
+Bundle 'project.tar.gz'
+Bundle 'flazz/vim-colorschemes'
+Bundle 'altercation/vim-colors-solarized'
+Bundle 'ColorSchemeMenuMaker'
+Bundle 'desert-warm-256'
+Bundle 'ChocolateLiquor'
+
+":set background=dark
+":colorscheme solarized
+":colorscheme ChocolateLiquor
+:colorscheme desert-warm-256
+
+filetype plugin indent on 
+
+"" vim-ref config
+let g:ref_phpmanual_path = $HOME . '/work/PHP_manual/php-chunked-xhtml/'
+let $PATH = $PATH . ':/usr/bin/'
+let g:ref_phpmanual_cmd  = 'w3m -dump %s'
+
+"omni completion enabled
+:setlocal omnifunc=syntaxcomplete#Complete
+:filetype plugin on
+
+function InsertTabWrapper()
+if pumvisible()
+  return "\<c-n>"
+endif
+let col = col('.') - 1
+if !col || getline('.')[col - 1] !~ '\k\|<\|/'
+  return "\<tab>"
+elseif exists('&omnifunc') && &omnifunc == ''
+  return "\<c-n>"
+else
+  return "\<c-x>\<c-o>"
+endif
+endfunction
+inoremap <tab> <c-r>=InsertTabWrapper()<cr>
+
+:set makeprg=php\ -l\ %
+:set errorformat=%m\ in\ %f\ on\ line\ %l
+:source /usr/share/vim/addons/plugin/matchit.vim
+:let b:match_words = "if:endif,(:),{:},[:]"
+
+"pathogenでftdetectなどをロードさせるために一度ファイルタイプ判定をoffにする
+"filetype off
+"pathogen.vimを使ってbundle配下のプラグインをpathに加える
+"call pathogen#runtime_append_all_bundles()
+"call pathogen#helptags()
+"set helpfile=$VIMRUNTIME/doc/help.txt
+"ファイルタイプ設定をonにする
+"filetype on
+
+"PHPの辞書　補完 20090520
+:set dictionary=~/.vim/dict/php.dict
+"拡張子で、分岐するように設定しておく、今回はPHPのみの設定なのであまり関係ないが記述しておく。
+autocmd FileType php :set dictionary=~/.vim/dict/php.dict
+
+"PHP関連
+let php_sql_query=1
+let php_htmlInStrings=1
+"let php_noShortTags=1
+let php_folding=1
+
